@@ -23,6 +23,19 @@
           <input type="date" id="birth-date" name="birth-date" required />
         </div>
         <div class="field">
+          <label for="ranking-date">Ranking date</label>
+          <div class="ranking-preview">
+            <input
+              type="text"
+              id="ranking-date"
+              name="ranking-date"
+              placeholder="Select a date to preview"
+              readonly
+            />
+            <span id="ranking-offset" class="ranking-offset" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="field">
           <label for="song-count">Number of songs per year (1-100)</label>
           <input
             type="number"
@@ -40,7 +53,15 @@
       <section class="panel">
         <div id="status" class="status" role="status" aria-live="polite"></div>
         <div id="results" class="results" hidden>
-          <h2>Playlist</h2>
+          <div class="results-header">
+            <h2>Playlist</h2>
+            <div class="view-toggle" role="group" aria-label="View mode">
+              <button type="button" class="toggle-btn is-active" data-view="detailed">
+                Detailed
+              </button>
+              <button type="button" class="toggle-btn" data-view="minimal">Minimal</button>
+            </div>
+          </div>
           <div id="playlist"></div>
         </div>
       </section>

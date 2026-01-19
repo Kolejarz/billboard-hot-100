@@ -2,10 +2,14 @@ const form = document.querySelector("#playlist-form");
 const statusEl = document.querySelector("#status");
 const resultsEl = document.querySelector("#results");
 const playlistEl = document.querySelector("#playlist");
+const rankingDateEl = document.querySelector("#ranking-date");
+const rankingOffsetEl = document.querySelector("#ranking-offset");
+const viewToggleButtons = document.querySelectorAll("[data-view]");
 
 let validDates = [];
 
 const formatDate = (date) => date.toISOString().slice(0, 10);
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 const setStatus = (message, isError = false) => {
   statusEl.textContent = message;
@@ -19,6 +23,12 @@ const fetchValidDates = async () => {
   }
   const data = await response.json();
   validDates = data.sort();
+};
+
+const ensureValidDates = async () => {
+  if (!validDates.length) {
+    await fetchValidDates();
+  }
 };
 
 const findNextChartDate = (targetDate) => {
@@ -40,8 +50,14 @@ const findNextChartDate = (targetDate) => {
   return result;
 };
 
+const formatOffset = (days) => {
+  const unit = days === 1 ? "day" : "days";
+  return `(+${days} ${unit})`;
+};
+
 const buildTargets = (birthDate, today) => {
   const targets = [];
+  const seenDates = new Set();
   const month = birthDate.getUTCMonth();
   const day = birthDate.getUTCDate();
 
@@ -51,8 +67,15 @@ const buildTargets = (birthDate, today) => {
       break;
     }
     const chartDate = findNextChartDate(target);
-    if (chartDate && !targets.includes(chartDate)) {
-      targets.push(chartDate);
+    if (chartDate && !seenDates.has(chartDate)) {
+      const chartDateObj = new Date(`${chartDate}T00:00:00Z`);
+      const offsetDays = Math.round((chartDateObj - target) / MS_PER_DAY);
+      seenDates.add(chartDate);
+      targets.push({
+        chartDate,
+        year,
+        offsetDays,
+      });
     }
   }
 
@@ -74,8 +97,19 @@ const renderPlaylist = (groups) => {
     const wrapper = document.createElement("div");
     wrapper.className = "chart-group";
 
-    const heading = document.createElement("h3");
-    heading.textContent = `${group.year} Chart • ${group.date}`;
+    const heading = document.createElement("div");
+    heading.className = "chart-heading";
+
+    const title = document.createElement("div");
+    title.className = "chart-title";
+    title.textContent = `${group.year} Chart`;
+    heading.appendChild(title);
+
+    const date = document.createElement("div");
+    date.className = "chart-date";
+    date.textContent = `${group.date} ${formatOffset(group.offsetDays)}`;
+    heading.appendChild(date);
+
     wrapper.appendChild(heading);
 
     const list = document.createElement("ul");
@@ -85,9 +119,30 @@ const renderPlaylist = (groups) => {
       const item = document.createElement("li");
       item.className = "song-item";
 
+      const info = document.createElement("div");
+      info.className = "song-info";
+
       const title = document.createElement("div");
-      title.textContent = `${song.song} (${song.artist}) [${group.year}]`;
-      item.appendChild(title);
+      title.className = "song-title";
+      title.textContent = song.song;
+
+      const artist = document.createElement("div");
+      artist.className = "song-artist";
+      artist.textContent = song.artist;
+
+      info.appendChild(title);
+      info.appendChild(artist);
+      item.appendChild(info);
+
+      const meta = document.createElement("div");
+      meta.className = "song-meta";
+      meta.innerHTML = `
+        <span>#${song.this_week}</span>
+        <span>Last week: ${song.last_week ?? "—"}</span>
+        <span>Peak: ${song.peak_position}</span>
+        <span>Weeks: ${song.weeks_on_chart}</span>
+      `;
+      item.appendChild(meta);
 
       const links = document.createElement("div");
       links.className = "song-links";
@@ -119,23 +174,71 @@ const renderPlaylist = (groups) => {
 const loadCharts = async (chartDates, count) => {
   const groups = [];
 
-  for (const date of chartDates) {
-    const response = await fetch(`date/${date}.json`);
+  for (const target of chartDates) {
+    const response = await fetch(`date/${target.chartDate}.json`);
     if (!response.ok) {
-      throw new Error(`Unable to load chart for ${date}.`);
+      throw new Error(`Unable to load chart for ${target.chartDate}.`);
     }
     const chart = await response.json();
     const songs = chart.data.slice(0, count);
 
     groups.push({
-      date,
-      year: date.slice(0, 4),
+      date: target.chartDate,
+      year: target.year,
+      offsetDays: target.offsetDays,
       songs,
     });
   }
 
   return groups;
 };
+
+const updateRankingPreview = async (birthValue) => {
+  if (!birthValue) {
+    rankingDateEl.value = "";
+    rankingOffsetEl.textContent = "";
+    return;
+  }
+
+  await ensureValidDates();
+  const birthDate = new Date(`${birthValue}T00:00:00Z`);
+  const chartDate = findNextChartDate(birthDate);
+  if (!chartDate) {
+    rankingDateEl.value = "Unavailable";
+    rankingOffsetEl.textContent = "";
+    return;
+  }
+
+  const chartDateObj = new Date(`${chartDate}T00:00:00Z`);
+  const offsetDays = Math.round((chartDateObj - birthDate) / MS_PER_DAY);
+  rankingDateEl.value = chartDate;
+  rankingOffsetEl.textContent = formatOffset(offsetDays);
+};
+
+const setView = (view) => {
+  resultsEl.classList.toggle("is-minimal", view === "minimal");
+  viewToggleButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.view === view);
+    button.setAttribute("aria-pressed", button.dataset.view === view ? "true" : "false");
+  });
+};
+
+const handleBirthDateInput = (event) => {
+  updateRankingPreview(event.target.value).catch((error) => {
+    console.error(error);
+    rankingDateEl.value = "Unavailable";
+    rankingOffsetEl.textContent = "";
+  });
+};
+
+form.elements["birth-date"].addEventListener("input", handleBirthDateInput);
+form.elements["birth-date"].addEventListener("change", handleBirthDateInput);
+
+viewToggleButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setView(button.dataset.view);
+  });
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -158,9 +261,7 @@ form.addEventListener("submit", async (event) => {
     setStatus("Loading charts...");
     resultsEl.hidden = true;
 
-    if (!validDates.length) {
-      await fetchValidDates();
-    }
+    await ensureValidDates();
 
     const birthDate = new Date(`${birthValue}T00:00:00Z`);
     const today = new Date();
@@ -173,6 +274,7 @@ form.addEventListener("submit", async (event) => {
 
     const groups = await loadCharts(chartDates, count);
     renderPlaylist(groups);
+    setView(resultsEl.classList.contains("is-minimal") ? "minimal" : "detailed");
 
     setStatus(`Loaded ${groups.length} charts.`);
     resultsEl.hidden = false;
@@ -184,3 +286,4 @@ form.addEventListener("submit", async (event) => {
 });
 
 setStatus("Enter your birthday to begin.");
+setView("detailed");
