@@ -15,6 +15,28 @@
     <a href="https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/1958-08-04.json">1958-08-04</a> | <a href="https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2026-01-17.json">2026-01-17</a>
 </p>
 
+## Birthday Billboard Playlist (Browser App)
+
+This repository includes a simple, fully client-side app (`index.html`) that builds a birthday playlist from the Hot 100 charts in this repo. Enter your date of birth and the number of songs to pull per year, and the app will:
+
+1. Find the first chart date after each birthday (year by year).
+2. Pull the top N songs from that chart.
+3. Build a playlist list with links to YouTube and Spotify searches.
+
+### Run locally
+
+Because the app loads JSON files via `fetch`, you need to serve the repo over HTTP. One quick option:
+
+```bash
+python -m http.server 8000
+```
+
+Then open <http://localhost:8000> in your browser.
+
+### GitHub Pages
+
+You can host the repo on GitHub Pages and open `index.html` directly. The app uses relative paths to the JSON data in this repository, so no server code is needed.
+
 ## Get the Most Recent Chart
 
 To get the current Billboard Hot 100 chart, use the following URL:

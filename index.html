@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Birthday Billboard Playlist</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>Birthday Billboard Playlist</h1>
+        <p>
+          Enter your date of birth and how many songs you want from each yearly
+          chart. The app finds the first Hot 100 chart date after each birthday
+          and builds a playlist up to today.
+        </p>
+      </header>
+
+      <form id="playlist-form" class="panel" novalidate>
+        <div class="field">
+          <label for="birth-date">Date of birth</label>
+          <input type="date" id="birth-date" name="birth-date" required />
+        </div>
+        <div class="field">
+          <label for="song-count">Number of songs per year (1-100)</label>
+          <input
+            type="number"
+            id="song-count"
+            name="song-count"
+            min="1"
+            max="100"
+            value="10"
+            required
+          />
+        </div>
+        <button type="submit">Build playlist</button>
+      </form>
+
+      <section class="panel">
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <div id="results" class="results" hidden>
+          <h2>Playlist</h2>
+          <div id="playlist"></div>
+        </div>
+      </section>
+
+      <footer>
+        <p>
+          Data source: Billboard Hot 100 JSON files in this repository. Links
+          open in a new tab on YouTube and Spotify searches.
+        </p>
+      </footer>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
