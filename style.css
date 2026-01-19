@@ -1,11 +1,13 @@
 :root {
   color-scheme: light;
-  --bg: #f6f7fb;
+  --bg: #f3f5fb;
   --card: #ffffff;
   --text: #14161a;
   --muted: #5d6271;
-  --accent: #3f6ee8;
-  --border: #d5d9e6;
+  --accent: #4c6fff;
+  --accent-strong: #3655db;
+  --border: #e2e6f2;
+  --highlight: #eef1ff;
 }
 
 * {
@@ -15,7 +17,7 @@
 body {
   margin: 0;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-  background: var(--bg);
+  background: radial-gradient(circle at top, #ffffff 0%, var(--bg) 45%, #eef1ff 100%);
   color: var(--text);
 }
 
@@ -30,7 +32,7 @@ header {
 }
 
 h1 {
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   margin-bottom: 12px;
 }
 
@@ -41,10 +43,10 @@ p {
 
 .panel {
   background: var(--card);
-  padding: 20px;
-  border-radius: 16px;
+  padding: 24px;
+  border-radius: 20px;
   border: 1px solid var(--border);
-  box-shadow: 0 8px 20px rgba(40, 58, 96, 0.08);
+  box-shadow: 0 14px 30px rgba(28, 48, 90, 0.08);
   margin-bottom: 24px;
 }
 
@@ -60,6 +62,7 @@ form {
 
 label {
   font-weight: 600;
+  color: #2f3442;
 }
 
 input {
@@ -67,14 +70,27 @@ input {
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 1rem;
+  background: #fafbff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: rgba(76, 111, 255, 0.6);
+  box-shadow: 0 0 0 3px rgba(76, 111, 255, 0.18);
+}
+
+input[readonly] {
+  color: #33384a;
+  background: #f4f6ff;
 }
 
 button {
   padding: 12px 16px;
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 1rem;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -90,8 +106,42 @@ button:hover {
   font-weight: 600;
 }
 
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
 .results h2 {
   margin-top: 0;
+}
+
+.view-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--highlight);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.toggle-btn.is-active {
+  background: white;
+  color: var(--accent);
+  box-shadow: 0 4px 10px rgba(72, 99, 214, 0.2);
 }
 
 .chart-group {
@@ -104,8 +154,22 @@ button:hover {
   border-bottom: none;
 }
 
-.chart-group h3 {
-  margin: 0 0 8px;
+.chart-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.chart-title {
+  font-weight: 700;
+}
+
+.chart-date {
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .song-list {
@@ -117,17 +181,47 @@ button:hover {
 }
 
 .song-item {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f5f7ff;
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.song-item:hover {
+  border-color: rgba(76, 111, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.song-title {
+  font-weight: 700;
+}
+
+.song-artist {
+  color: var(--muted);
+}
+
+.song-meta {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #f2f4ff;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.song-meta span {
+  background: white;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 219, 239, 0.7);
 }
 
 .song-links {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .song-links a {
@@ -142,9 +236,30 @@ footer {
   font-size: 0.95rem;
 }
 
+.ranking-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.ranking-offset {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.results.is-minimal .song-meta,
+.results.is-minimal .song-links {
+  display: none;
+}
+
+.results.is-minimal .song-item {
+  padding: 12px 14px;
+}
+
 @media (min-width: 720px) {
   form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: end;
   }
 
